@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>NimbusTerm</title>
+    <organization>com.maestro37</organization>
+    <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
+    <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
+    <background file="background.png" alignment="bottomleft" scaling="tofit" mime-type="image/png"/>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <conclusion file="conclusion.html" mime-type="text/html"/>
+
+    <choices-outline>
+        <line choice="default"/>
+    </choices-outline>
+
+    <choice id="default" title="NimbusTerm" description="Установить NimbusTerm в папку Applications">
+        <pkg-ref id="com.maestro37.nimbusterm"/>
+    </choice>
+
+    <pkg-ref id="com.maestro37.nimbusterm" version="1.0" onConclusion="none">NimbusTerm-component.pkg</pkg-ref>
+</installer-gui-script>
