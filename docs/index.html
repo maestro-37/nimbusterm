@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NimbusTerm — SSH/SFTP terminal for macOS, a native MobaXterm alternative</title>
+<meta name="description" content="NimbusTerm is a native macOS SSH and SFTP client: tabs, splits, tunnels, keys, server monitoring and MobaXterm session import. Built with SwiftUI. Free and open source.">
+<link rel="canonical" href="https://maestro-37.github.io/nimbusterm/">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NimbusTerm">
+<meta property="og:title" content="NimbusTerm — native SSH/SFTP terminal for macOS">
+<meta property="og:description" content="A native MobaXterm alternative for macOS: SSH, SFTP, tunnels, keys, monitoring and session import. Free, open source, MIT.">
+<meta property="og:url" content="https://maestro-37.github.io/nimbusterm/">
+<meta property="og:image" content="https://maestro-37.github.io/nimbusterm/icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NimbusTerm — native SSH/SFTP terminal for macOS">
+<meta name="twitter:description" content="A native MobaXterm alternative for macOS: SSH, SFTP, tunnels, keys, monitoring and session import.">
+<meta name="twitter:image" content="https://maestro-37.github.io/nimbusterm/icon.png">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="sitemap" href="sitemap.xml" type="application/xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "NimbusTerm",
+  "operatingSystem": "macOS 14+",
+  "applicationCategory": "DeveloperApplication",
+  "description": "Native macOS SSH and SFTP terminal workspace with tabs, splits, tunnels, keys, server monitoring and MobaXterm session import.",
+  "url": "https://maestro-37.github.io/nimbusterm/",
+  "downloadUrl": "https://github.com/maestro-37/nimbusterm/releases/latest",
+  "softwareVersion": "1.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "maestro-37", "url": "https://github.com/maestro-37" }
+}
+</script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --fg: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 650; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  nav { display: flex; gap: 20px; font-size: 14px; }
+  nav a { color: var(--muted); }
+  nav a:hover { color: var(--fg); }
+  .hero { text-align: center; padding: 72px 0 56px; }
+  .hero img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 18px 48px rgba(0,0,0,.45); }
+  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.1; margin: 24px 0 12px; letter-spacing: -.02em; }
+  .tagline { font-size: clamp(17px, 2.4vw, 21px); color: var(--muted); max-width: 680px; margin: 0 auto 28px; }
+  .meta { color: var(--muted); font-size: 14px; margin-bottom: 30px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px;
+    border-radius: 8px; font-weight: 600; font-size: 15px; border: 1px solid var(--border);
+    color: var(--fg); background: var(--panel);
+  }
+  .btn:hover { text-decoration: none; border-color: var(--muted); }
+  .btn.primary { background: var(--green); border-color: var(--green); color: #052e16; }
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 28px; margin: 0 0 8px; letter-spacing: -.01em; }
+  .lead { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  pre {
+    background: #010409; border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; overflow-x: auto; font-size: 14px; line-height: 1.6;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .steps { display: grid; gap: 18px; counter-reset: step; }
+  .step { display: grid; grid-template-columns: 32px 1fr; gap: 14px; align-items: start; }
+  .step::before {
+    counter-increment: step; content: counter(step); display: grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    color: var(--accent); font-size: 14px; font-weight: 600;
+  }
+  .step p { margin: 4px 0 0; }
+  footer { padding: 40px 0 60px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  footer p { margin: 6px 0; }
+  @media (max-width: 640px) { nav { display: none; } .hero { padding: 48px 0 40px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/nimbusterm/"><img src="icon.png" alt=""> NimbusTerm</a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#security">Security</a>
+      <a href="https://github.com/maestro-37/nimbusterm">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <img src="icon.png" alt="NimbusTerm app icon" width="96" height="96">
+      <h1>NimbusTerm</h1>
+      <p class="tagline">A native SSH / SFTP terminal workspace for macOS — and a lighter, open-source alternative to MobaXterm.</p>
+      <p class="meta">macOS 14+ · Apple Silicon · SwiftUI · MIT license · free</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/maestro-37/nimbusterm/releases/latest">Download for macOS</a>
+        <a class="btn" href="https://github.com/maestro-37/nimbusterm">View on GitHub</a>
+        <a class="btn" href="https://github.com/maestro-37/nimbusterm/stargazers">⭐ Star</a>
+      </div>
+    </div>
+
+    <section id="features">
+      <h2>Everything for daily SSH work</h2>
+      <p class="lead">No Electron, no Java, no bundled X server. One native app on top of the system OpenSSH.</p>
+      <div class="grid">
+        <div class="card"><h3>Terminal</h3><p>Truecolor, 256 colors, mouse, links, scrollback, search, themes and a custom font.</p></div>
+        <div class="card"><h3>Tabs &amp; splits</h3><p>Recursive splits, broadcast input to every pane, and layout restored on launch.</p></div>
+        <div class="card"><h3>Sessions</h3><p>Folders, tags, favorites, search, quick connect and duplicate. Local shell, SSH, SFTP, raw TCP.</p></div>
+        <div class="card"><h3>SFTP</h3><p>Remote browser with a built-in editor, transfer queue, chmod, rename and drag-and-drop.</p></div>
+        <div class="card"><h3>Tunnels</h3><p>Local, remote and dynamic SOCKS tunnels with status, stderr and autostart.</p></div>
+        <div class="card"><h3>Keys</h3><p>Browse <code>~/.ssh</code>, generate ed25519 keys and install them with <code>ssh-copy-id</code>.</p></div>
+        <div class="card"><h3>Monitoring</h3><p>Load, RAM, disk and uptime over SSH in a compact status strip.</p></div>
+        <div class="card"><h3>MobaXterm import</h3><p>Bring existing <code>.mxtsessions</code> and <code>~/.ssh/config</code> sessions with one click.</p></div>
+      </div>
+    </section>
+
+    <section id="install">
+      <h2>Install</h2>
+      <p class="lead">Download the DMG, drag NimbusTerm into Applications, launch it.</p>
+      <div class="steps">
+        <div class="step"><div><p><a href="https://github.com/maestro-37/nimbusterm/releases/latest">Download the latest release</a> — DMG, PKG or ZIP.</p></div></div>
+        <div class="step"><div><p>The app is ad-hoc signed. On first launch use right-click → Open, or remove the quarantine flag:</p>
+          <pre><code>xattr -dr com.apple.quarantine /Applications/NimbusTerm.app</code></pre></div></div>
+        <div class="step"><div><p>Build from source if you prefer:</p>
+          <pre><code>git clone https://github.com/maestro-37/nimbusterm.git
+cd nimbusterm
+./scripts/build-app.sh
+open dist/NimbusTerm.app</code></pre></div></div>
+      </div>
+    </section>
+
+    <section id="security">
+      <h2>Security</h2>
+      <p class="lead">An SSH client should not be a black box. The source is open and the design is boring on purpose.</p>
+      <div class="grid">
+        <div class="card"><h3>Keychain only</h3><p>Passwords and passphrases are stored in the macOS Keychain, never in the session library.</p></div>
+        <div class="card"><h3>No secrets in argv</h3><p>Credentials reach <code>ssh</code> and <code>sftp</code> through an askpass helper, not the process list.</p></div>
+        <div class="card"><h3>System OpenSSH</h3><p>Agent, keys, config, ProxyJump, FIDO and host-key checks come from Apple's OpenSSH.</p></div>
+        <div class="card"><h3>Open source</h3><p>MIT licensed. Read the code, build it yourself, report issues privately via the security policy.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>NimbusTerm</strong> · <a href="https://github.com/maestro-37/nimbusterm">GitHub</a> · <a href="https://github.com/maestro-37/nimbusterm/releases/latest">Releases</a> · <a href="https://github.com/maestro-37/nimbusterm/blob/main/LICENSE">MIT license</a></p>
+    <p>Not affiliated with Mobatek. MobaXterm is a trademark of Mobatek.</p>
+  </footer>
+</div>
+</body>
+</html>

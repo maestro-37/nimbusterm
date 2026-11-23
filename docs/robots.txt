@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maestro-37.github.io/nimbusterm/sitemap.xml

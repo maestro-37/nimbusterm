@@ -20,13 +20,13 @@ No Electron. No Java. One `.app` built with SwiftUI and SwiftTerm.
 [![Donate crypto](https://img.shields.io/badge/donate-crypto-%23F7931A?style=flat-square&logo=bitcoin&logoColor=white)](#-support-the-project)
 [![Made for Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-black?style=flat-square&logo=apple)](https://github.com/maestro-37/nimbusterm)
 
-[Install](#-installation) · [Features](#-features) · [Shortcuts](#-keyboard-shortcuts) · [Build](#-build-from-source) · [Security](#-security) · [FAQ](#-faq) · [Support](#-support-the-project)
+[Website](https://maestro-37.github.io/nimbusterm/) · [Install](#-installation) · [Features](#-features) · [Shortcuts](#-keyboard-shortcuts) · [Build](#-build-from-source) · [Security](#-security) · [FAQ](#-faq) · [Support](#-support-the-project)
 
 </div>
 
 ---
 
-NimbusTerm is a daily-driver terminal workspace for people who miss MobaXterm on a Mac. It keeps the workflow — a session library with folders and tags, tabs and splits, an SFTP browser next to the terminal, tunnels and keys in one place — but is a clean native app on top of the system OpenSSH.
+NimbusTerm is a native macOS SSH/SFTP terminal and a lightweight alternative to MobaXterm. It keeps the workflow — a session library with folders and tags, tabs and splits, an SFTP browser next to the terminal, tunnels and keys in one place — but is a clean native app on top of the system OpenSSH.
 
 The application code was written from scratch. The only thing it takes from MobaXterm is the **session file format**, so you can import your existing sessions. No MobaXterm code, assets or icons are used.
 
@@ -38,7 +38,7 @@ The application code was written from scratch. The only thing it takes from Moba
 - **SwiftTerm**-based (MIT): truecolor, 256 colors, mouse reporting, clickable links, scrollback, copy/paste.
 - Find with `⌘F`, next/previous with `⌘G` / `⇧⌘G`.
 - Font and theme picker. Themes: Nimbus, Solarized Dark/Light, Dracula, System — each with its own 16-color ANSI palette.
-- Tabs (`⌘T`) and recursive splits (`⌘D` vertical, `⇧⌘D` horizontal).
+- Tabs (`⌘T`), drag to reorder (the strip rearranges live while you drag), recursive splits (`⌘D` vertical, `⇧⌘D` horizontal), and a **4 panes** preset. Drop a tab onto a terminal pane to split it there.
 - **Broadcast input** (`⇧⌘B`) — type once, send to every pane in the tab.
 
 ### Sessions
@@ -211,7 +211,7 @@ NIMBUSTERM_TUNNEL_PORT=18082 ./.build/debug/NimbusTerm --self-test --self-test-t
 - **No built-in X server.** XQuartz is required; the app checks for `/opt/X11/bin/xset` and warns if it is missing.
 - No FTP/FTPS, serial, ZMODEM or cloud sync.
 - ssh config `Include` is not expanded; MobaXterm `LocalForward` is not converted into a tunnel automatically — create the tunnel manually.
-- Tabs cannot be reordered by drag-and-drop (closing, renaming and opening new tabs work).
+- A tab that already has several panes can be reordered but not dropped into another tab (drag a single-pane tab instead).
 - The key generator does not store the passphrase itself: set it in the session editor that uses the key, and it goes to the Keychain.
 - Logs contain raw host output timestamped per output chunk, not per line.
 - In password mode, SFTP errors are detected from `sftp` output text; with a key/agent the real exit code is used.
