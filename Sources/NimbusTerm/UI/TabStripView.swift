@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import NimbusCore
 
@@ -16,11 +17,13 @@ struct TabStripView: View {
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 6)
+                    .background(NoVerticalBounce { app.draggingTabID = nil })
                 }
                 .onChange(of: app.activeTabID) { _, newValue in
                     guard let newValue else { return }
                     withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(newValue, anchor: .center) }
                 }
+                .background(NoVerticalBounce())
             }
 
             Divider().frame(height: 22)
@@ -46,6 +49,12 @@ struct TabStripView: View {
             }
         }
         .background(.bar)
+        .onDrop(of: [.text], isTargeted: nil) { _ in
+            guard let id = app.draggingTabID else { return false }
+            app.moveTab(id, toIndex: app.tabs.count - 1)
+            app.draggingTabID = nil
+            return true
+        }
     }
 }
 
@@ -54,33 +63,32 @@ struct TabItemView: View {
     @ObservedObject var tab: WorkspaceTab
     let isActive: Bool
     @LocalState private var hovered = false
+    @LocalState private var width: CGFloat = 120
     @LocalState private var showRename = false
     @LocalState private var renameName = ""
 
     var body: some View {
         ZStack(alignment: .trailing) {
-            Button {
-                app.activeTabID = tab.id
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: icon)
-                        .font(.system(size: 11))
-                        .foregroundStyle(isActive ? Color.accentColor : Color.secondary)
-                    Text(tab.title)
-                        .font(.system(size: 12, weight: isActive ? .semibold : .regular))
-                        .lineLimit(1)
-                        .frame(maxWidth: 180, alignment: .leading)
-                    Spacer(minLength: 18)
-                }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(isActive ? Color.accentColor.opacity(0.18) : (hovered ? Color.secondary.opacity(0.1) : .clear))
-                )
-                .contentShape(Rectangle())
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 11))
+                    .foregroundStyle(isActive ? Color.accentColor : Color.secondary)
+                Text(tab.title)
+                    .font(.system(size: 12, weight: isActive ? .semibold : .regular))
+                    .lineLimit(1)
+                    .frame(maxWidth: 180, alignment: .leading)
+                Spacer(minLength: 18)
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isActive ? Color.accentColor.opacity(0.18) : (hovered ? Color.secondary.opacity(0.1) : .clear))
+            )
+            .contentShape(Rectangle())
+            .onTapGesture { app.activeTabID = tab.id }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { app.activeTabID = tab.id }
 
             Button {
                 app.requestCloseTab(tab.id)
@@ -96,10 +104,22 @@ struct TabItemView: View {
             .accessibilityLabel("Закрыть вкладку")
         }
         .onHover { hovered = $0 }
+        .background(GeometryReader { proxy in
+            Color.clear
+                .onAppear { width = proxy.size.width }
+                .onChange(of: proxy.size.width) { _, value in width = value }
+        })
+        .onDrag {
+            app.draggingTabID = tab.id
+            return NSItemProvider(object: tab.id.uuidString as NSString)
+        }
+        .onDrop(of: [.text], delegate: TabDropDelegate(tabID: tab.id, width: width, app: app))
+        .help("Перетащите, чтобы изменить порядок; на панель терминала — чтобы разделить")
         .contextMenu {
             if case .terminals = tab.kind {
                 Button("Разделить вертикально") { app.activeTabID = tab.id; app.splitActive(axis: .horizontal) }
                 Button("Разделить горизонтально") { app.activeTabID = tab.id; app.splitActive(axis: .vertical) }
+                Button("4 панели") { app.activeTabID = tab.id; app.splitActiveIntoQuad() }
                 Toggle("Broadcast ввода", isOn: Binding(
                     get: { tab.isBroadcast },
                     set: { tab.isBroadcast = $0 }
@@ -129,6 +149,90 @@ struct TabItemView: View {
     }
 }
 
+
+/// Places the tab live while it is dragged, so the strip itself is the preview.
+struct TabDropDelegate: DropDelegate {
+    let tabID: UUID
+    let width: CGFloat
+    let app: AppModel
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        guard let id = app.draggingTabID, id != tabID,
+              let from = app.tabs.firstIndex(where: { $0.id == id }),
+              let hovered = app.tabs.firstIndex(where: { $0.id == tabID })
+        else { return nil }
+        var target = hovered + (info.location.x > width / 2 ? 1 : 0)
+        if target > from { target -= 1 }
+        if target != from { app.moveTab(id, toIndex: target) }
+        return DropProposal(operation: .move)
+    }
+
+    func dropEntered(info: DropInfo) {
+        _ = dropUpdated(info: info)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        app.draggingTabID = nil
+        return true
+    }
+}
+
+/// SwiftUI sizes the horizontal tab strip's document taller than the viewport,
+/// so the bar can scroll away vertically. Clamp it on every layout.
+struct NoVerticalBounce: NSViewRepresentable {
+    var onMouseUp: (() -> Void)?
+
+    final class Guard: NSView {
+        private var scrollMonitor: Any?
+        var onMouseUp: (() -> Void)?
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard scrollMonitor == nil, window != nil else { return }
+            scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel, .leftMouseUp]) { [weak self] event in
+                guard let self, let window = self.window, event.window === window else { return event }
+                if event.type == .leftMouseUp {
+                    self.onMouseUp?()
+                    return event
+                }
+                let frame = self.convert(self.bounds, to: nil)
+                guard frame.contains(event.locationInWindow) else { return event }
+                return abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX) ? nil : event
+            }
+        }
+
+        deinit {
+            if let scrollMonitor { NSEvent.removeMonitor(scrollMonitor) }
+        }
+
+        override func layout() {
+            super.layout()
+            var node: NSView? = superview
+            while let current = node {
+                if let scroll = current as? NSScrollView {
+                    scroll.verticalScrollElasticity = .none
+                    scroll.hasVerticalScroller = false
+                    let limit = scroll.contentSize.height
+                    if let doc = scroll.documentView, limit > 0, doc.frame.height > limit {
+                        var frame = doc.frame
+                        frame.size.height = limit
+                        doc.frame = frame
+                    }
+                }
+                node = current.superview
+            }
+        }
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = Guard()
+        view.onMouseUp = onMouseUp
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
 
 struct BroadcastToggle: View {
     @ObservedObject var tab: WorkspaceTab

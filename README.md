@@ -30,7 +30,7 @@ NimbusTerm is a native macOS SSH/SFTP terminal and a lightweight alternative to 
 
 The application code was written from scratch. The only thing it takes from MobaXterm is the **session file format**, so you can import your existing sessions. No MobaXterm code, assets or icons are used.
 
-> **Status:** v1.0, usable every day. See [Limitations](#-limitations) for what is intentionally out of scope.
+> **Status:** v1.1.0, usable every day. See [Limitations](#-limitations) for what is intentionally out of scope.
 
 ## ✨ Features
 
@@ -78,13 +78,13 @@ The application code was written from scratch. The only thing it takes from Moba
 
 ### DMG (recommended)
 
-1. Download `NimbusTerm-1.0.dmg` from [**Releases**](https://github.com/maestro-37/nimbusterm/releases/latest).
+1. Download `NimbusTerm-1.1.0.dmg` from [**Releases**](https://github.com/maestro-37/nimbusterm/releases/latest).
 2. Open the image and drag **NimbusTerm** into **Applications**.
 3. Launch it.
 
 ### PKG
 
-`NimbusTerm-1.0.pkg` installs into `/Applications` through the standard Installer wizard and asks for an administrator password.
+`NimbusTerm-1.1.0.pkg` installs into `/Applications` through the standard Installer wizard and asks for an administrator password.
 
 ### First launch and Gatekeeper
 
@@ -152,8 +152,8 @@ swift run NimbusTerm
 
 This produces in `dist/`:
 
-- `NimbusTerm-1.0.dmg` — drag-and-drop image with a background, slots for the app and `Applications`, and a volume icon. Requires [`create-dmg`](https://github.com/create-dmg/create-dmg) (`brew install create-dmg`); without it the script falls back to a plain DMG with the app and an Applications link.
-- `NimbusTerm-1.0.pkg` — Installer.app wizard with welcome, background and summary; built with the system `pkgbuild` / `productbuild`.
+- `NimbusTerm-1.1.0.dmg` — drag-and-drop image with a background, slots for the app and `Applications`, and a volume icon. Requires [`create-dmg`](https://github.com/create-dmg/create-dmg) (`brew install create-dmg`); without it the script falls back to a plain DMG with the app and an Applications link.
+- `NimbusTerm-1.1.0.pkg` — Installer.app wizard with welcome, background and summary; built with the system `pkgbuild` / `productbuild`.
 - `SHA256SUMS.txt` — checksums.
 
 ## 🔄 Importing from MobaXterm

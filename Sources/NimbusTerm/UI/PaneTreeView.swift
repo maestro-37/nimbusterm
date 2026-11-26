@@ -45,6 +45,8 @@ struct TerminalPaneView: View {
     @ObservedObject var tab: WorkspaceTab
     let leafID: UUID
 
+    @LocalState private var dropTargeted = false
+
     private var isActive: Bool { tab.activeLeafID == leafID }
 
     var body: some View {
@@ -87,6 +89,10 @@ struct TerminalPaneView: View {
                         tab.activeLeafID = leafID
                         tab.split(axis: .vertical)
                     }
+                    Button("4 панели") {
+                        tab.activeLeafID = leafID
+                        tab.splitIntoQuad()
+                    }
                     Divider()
                     Button("Перезапустить") { controller.restart() }
                         .disabled(controller.isRunning)
@@ -115,9 +121,19 @@ struct TerminalPaneView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .overlay(
             Rectangle()
-                .strokeBorder(isActive ? Color.accentColor.opacity(0.75) : Color.clear, lineWidth: 1)
+                .strokeBorder(
+                    dropTargeted ? Color.orange.opacity(0.9)
+                        : (isActive ? Color.accentColor.opacity(0.75) : Color.clear),
+                    lineWidth: dropTargeted ? 2 : 1
+                )
                 .allowsHitTesting(false)
         )
+        .onDrop(of: [.text], isTargeted: $dropTargeted) { _ in
+            guard let id = app.draggingTabID, id != tab.id else { return false }
+            app.mergeTab(id, into: tab.id, at: leafID)
+            app.draggingTabID = nil
+            return true
+        }
     }
 
     private var pendingOverlay: some View {

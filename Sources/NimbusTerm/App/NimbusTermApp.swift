@@ -107,6 +107,8 @@ struct AppCommands: Commands {
             Button("Разделить горизонтально") { app.splitActive(axis: .vertical) }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
                 .disabled(app.activeTab?.isTerminals != true)
+            Button("4 панели") { app.splitActiveIntoQuad() }
+                .disabled(app.activeTab?.isTerminals != true)
             Button("Закрыть панель") { app.closeActiveLeaf() }
                 .keyboardShortcut("w", modifiers: [.command, .shift])
                 .disabled(app.activeTab?.isTerminals != true)

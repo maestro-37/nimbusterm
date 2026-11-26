@@ -24,6 +24,7 @@ final class AppModel: ObservableObject {
     }
     @Published var tabs: [WorkspaceTab] = []
     @Published var activeTabID: UUID?
+    @Published var draggingTabID: UUID?
     @Published var selectedID: UUID?
     @Published var showSessionEditor = false
     @Published var editingSession: Session?
@@ -328,6 +329,36 @@ final class AppModel: ObservableObject {
 
     func splitActive(axis: SplitAxis) {
         activeTab?.split(axis: axis)
+        schedulePersist()
+    }
+
+    func splitActiveIntoQuad() {
+        activeTab?.splitIntoQuad()
+        schedulePersist()
+    }
+
+    func moveTab(_ id: UUID, toIndex index: Int) {
+        guard let from = tabs.firstIndex(where: { $0.id == id }), !tabs.isEmpty else { return }
+        let target = min(max(index, 0), tabs.count - 1)
+        guard target != from else { return }
+        let tab = tabs.remove(at: from)
+        tabs.insert(tab, at: target)
+        schedulePersist()
+    }
+
+    /// Drops a single-pane tab into another tab as a new split pane.
+    /// Multi-pane tabs are ignored: split them in place instead.
+    func mergeTab(_ id: UUID, into targetID: UUID, at leafID: UUID, axis: SplitAxis = .horizontal) {
+        guard id != targetID,
+              let index = tabs.firstIndex(where: { $0.id == id }),
+              let target = tabs.first(where: { $0.id == targetID }),
+              target.isTerminals,
+              PaneTreeOps.leaves(tabs[index].root).count == 1,
+              let sourceLeaf = PaneTreeOps.leaves(tabs[index].root).first
+        else { return }
+        guard target.adopt(from: tabs[index], leaf: sourceLeaf, at: leafID, axis: axis) else { return }
+        tabs.remove(at: index)
+        activeTabID = targetID
         schedulePersist()
     }
 

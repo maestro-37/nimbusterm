@@ -32,6 +32,28 @@ enum AppSelfTest {
         )
         try? FileManager.default.removeItem(at: editorProbeURL.deletingLastPathComponent().deletingLastPathComponent())
 
+        let paneTab = WorkspaceTab(
+            session: Session(name: "pane-probe", protocolKind: .local),
+            settings: AppSettings(),
+            helperURL: URL(fileURLWithPath: "/"),
+            extraOptions: "",
+            autoStart: false
+        )
+        paneTab.splitIntoQuad()
+        check(PaneTreeOps.leaves(paneTab.root).count == 4, "panes.quad")
+        let paneSource = WorkspaceTab(
+            session: Session(name: "pane-source", protocolKind: .local),
+            settings: AppSettings(),
+            helperURL: URL(fileURLWithPath: "/"),
+            extraOptions: "",
+            autoStart: false
+        )
+        let sourceLeaf = PaneTreeOps.leaves(paneSource.root)[0]
+        let targetLeaf = PaneTreeOps.leaves(paneTab.root)[0]
+        check(paneTab.adopt(from: paneSource, leaf: sourceLeaf, at: targetLeaf, axis: .horizontal), "panes.adopt")
+        check(PaneTreeOps.leaves(paneTab.root).count == 5, "panes.adopt.count")
+        check(paneSource.controllers.isEmpty, "panes.detach")
+
         let echo = await ProcessRunner.run(executable: "/bin/echo", arguments: ["hello"])
         check(echo.status == 0 && echo.stdout == "hello\n", "process.run")
 

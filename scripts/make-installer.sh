@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-1.0}"
+VERSION="${VERSION:-1.1.0}"
 APP="dist/NimbusTerm.app"
 BUILD="build/installer"
 DMG="dist/NimbusTerm-$VERSION.dmg"

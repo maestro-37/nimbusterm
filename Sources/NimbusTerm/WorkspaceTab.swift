@@ -119,10 +119,16 @@ final class WorkspaceTab: Identifiable, ObservableObject {
     private func install(session: Session, leafID: UUID, autoStart: Bool, hostTrusted: Bool) {
         leafTrust[leafID] = hostTrusted
         let controller = TerminalController(session: session, settings: settings, helperURL: helperURL, hostTrusted: hostTrusted)
+        controller.autoStart = autoStart
+        bind(controller: controller, session: session, leafID: leafID)
+        controllers[leafID] = controller
+    }
+
+    /// Callbacks point at this tab, so a controller moved here must be re-bound.
+    private func bind(controller: TerminalController, session: Session, leafID: UUID) {
         controller.trustProvider = { [weak self] in self?.trustProvider(session) ?? false }
         controller.secretProvider = { [weak self] in self?.secretProvider(session) }
         controller.setDefaultExtraOptions(extraOptions)
-        controller.autoStart = autoStart
         controller.onTitle = { [weak self] title in
             guard let self else { return }
             if self.activeLeafID == leafID, self.customTitle == nil { self.title = title }
@@ -139,7 +145,46 @@ final class WorkspaceTab: Identifiable, ObservableObject {
         controller.onFocus = { [weak self] in
             self?.activeLeafID = leafID
         }
-        controllers[leafID] = controller
+    }
+
+    /// Removes a pane from this tab without stopping its process.
+    func detachLeaf(_ leafID: UUID) -> (TerminalController, Session, Bool)? {
+        guard let controller = controllers[leafID], let session = leafSessions[leafID] else { return nil }
+        let trusted = leafTrust[leafID] ?? false
+        controllers.removeValue(forKey: leafID)
+        leafSessions.removeValue(forKey: leafID)
+        leafTrust.removeValue(forKey: leafID)
+        return (controller, session, trusted)
+    }
+
+    /// Adds a pane taken from another tab next to `targetLeaf` (tab drag & drop).
+    @discardableResult
+    func adopt(
+        from source: WorkspaceTab,
+        leaf: UUID,
+        at targetLeaf: UUID,
+        axis: SplitAxis
+    ) -> Bool {
+        guard let (controller, session, trusted) = source.detachLeaf(leaf) else { return false }
+        let newLeaf = UUID()
+        controllers[newLeaf] = controller
+        leafSessions[newLeaf] = session
+        leafTrust[newLeaf] = trusted
+        bind(controller: controller, session: session, leafID: newLeaf)
+        root = PaneTreeOps.split(root, at: targetLeaf, axis: axis, newLeaf: newLeaf)
+        activeLeafID = newLeaf
+        onChange?()
+        return true
+    }
+
+    /// One screen, four panes: split across, then split each half down.
+    func splitIntoQuad() {
+        guard case .terminals = kind else { return }
+        let first = activeLeafID
+        split(axis: .horizontal)
+        split(axis: .vertical)
+        activeLeafID = first
+        split(axis: .vertical)
     }
 
     var activeController: TerminalController? {

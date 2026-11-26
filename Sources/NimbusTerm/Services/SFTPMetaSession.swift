@@ -44,7 +44,7 @@ final class SFTPMetaSession: @unchecked Sendable {
 
     private func execute(_ command: String, timeout: TimeInterval) -> SFTPBatchResult {
         AppPaths.ensureControlDirectory()
-        guard start() else { return failure("sftp: не удалось запустить сессию") }
+        guard start() else { return failure(L10n.t("sftp: не удалось запустить сессию")) }
         let deadline = Date().addingTimeInterval(timeout)
 
         if !primed {
@@ -56,10 +56,10 @@ final class SFTPMetaSession: @unchecked Sendable {
             primed = true
         }
 
-        guard let input else { return failure("sftp: сессия закрыта") }
+        guard let input else { return failure(L10n.t("sftp: сессия закрыта")) }
         guard (try? input.write(contentsOf: Data((command + "\n").utf8))) != nil else {
             stop()
-            return failure("sftp: не удалось отправить команду")
+            return failure(L10n.t("sftp: не удалось отправить команду"))
         }
 
         guard waitForPrompt(deadline) else {
@@ -177,7 +177,7 @@ final class SFTPMetaSession: @unchecked Sendable {
         buffer.removeAll()
 
         guard let prompt = text.range(of: "sftp> ") else {
-            return failure("sftp: не удалось разобрать ответ")
+            return failure(L10n.t("sftp: не удалось разобрать ответ"))
         }
         var lines = text[..<prompt.lowerBound].components(separatedBy: "\n")
         // The tty echoes our own command line; the remote reply follows it.
@@ -192,7 +192,7 @@ final class SFTPMetaSession: @unchecked Sendable {
 
     private func timedOut(_ timeout: TimeInterval) -> SFTPBatchResult {
         stop()
-        return failure("sftp: нет ответа за \(Int(timeout)) с")
+        return failure(L10n.f("sftp: нет ответа за %d с", Int(timeout)))
     }
 
     private func failure(_ message: String) -> SFTPBatchResult {
